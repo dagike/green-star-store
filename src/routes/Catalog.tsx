@@ -3,6 +3,7 @@ import { FilterPanel } from '@/components/FilterPanel'
 import { ProductCard } from '@/components/ProductCard'
 import { ProductCardSkeleton } from '@/components/ProductCardSkeleton'
 import { ProductGrid } from '@/components/ProductGrid'
+import { SortSelect } from '@/components/SortSelect'
 import { Button } from '@/components/ui/Button'
 import { Drawer } from '@/components/ui/Drawer'
 import { useCatalogFilters } from '@/lib/useCatalogFilters'
@@ -15,10 +16,7 @@ export function Catalog() {
   const { filters, setFilter, clearFilters, hasActiveFilters } = useCatalogFilters()
   const { categories, priceRange } = useCategories()
 
-  const params = useMemo<ProductListParams>(
-    () => ({ sort: 'newest', limit: 24, ...filters }),
-    [filters],
-  )
+  const params = useMemo<ProductListParams>(() => ({ limit: 24, ...filters }), [filters])
 
   const { items, loading, loadingMore, error, hasMore, loadMore } = useInfiniteProducts(params)
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -51,19 +49,25 @@ export function Catalog() {
 
   return (
     <div className="flex flex-col gap-6 py-8">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">Shop</h1>
           <p className="text-sm text-neutral-500">Browse the full Green Star Store catalog.</p>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="lg:hidden"
-          onClick={() => setFiltersOpen(true)}
-        >
-          Filters{hasActiveFilters ? ' •' : ''}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="lg:hidden"
+            onClick={() => setFiltersOpen(true)}
+          >
+            Filters{hasActiveFilters ? ' •' : ''}
+          </Button>
+          <SortSelect
+            value={filters.sort}
+            onChange={(sort) => setFilter('sort', sort === 'newest' ? undefined : sort)}
+          />
+        </div>
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

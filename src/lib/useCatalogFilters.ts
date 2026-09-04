@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import type { ProductSort } from '@/types'
 
 export interface CatalogFilters {
   q: string | undefined
@@ -8,8 +9,14 @@ export interface CatalogFilters {
   maxPrice: number | undefined
   minRating: number | undefined
   inStock: boolean
+  sort: ProductSort
 }
 
+const VALID_SORTS: ProductSort[] = ['price_asc', 'price_desc', 'newest', 'top_rated']
+const DEFAULT_SORT: ProductSort = 'newest'
+
+// Sort is excluded on purpose - "Clear filters" resets what narrows the results, not
+// how they're ordered.
 const CLEARABLE_KEYS = ['category', 'minPrice', 'maxPrice', 'minRating', 'inStock'] as const
 
 interface UseCatalogFiltersResult {
@@ -30,6 +37,7 @@ export function useCatalogFilters(): UseCatalogFiltersResult {
     const minPriceRaw = searchParams.get('minPrice')
     const maxPriceRaw = searchParams.get('maxPrice')
     const minRatingRaw = searchParams.get('minRating')
+    const sortRaw = searchParams.get('sort') as ProductSort | null
 
     return {
       q: searchParams.get('q') || undefined,
@@ -38,6 +46,7 @@ export function useCatalogFilters(): UseCatalogFiltersResult {
       maxPrice: maxPriceRaw ? Number(maxPriceRaw) : undefined,
       minRating: minRatingRaw ? Number(minRatingRaw) : undefined,
       inStock: searchParams.get('inStock') === 'true',
+      sort: sortRaw && VALID_SORTS.includes(sortRaw) ? sortRaw : DEFAULT_SORT,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchKey])
