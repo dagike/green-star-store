@@ -52,7 +52,15 @@ export function Catalog() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900">Shop</h1>
-          <p className="text-sm text-neutral-500">Browse the full Green Star Store catalog.</p>
+          <p className="text-sm text-neutral-500">
+            {filters.q ? (
+              <>
+                Results for <span className="font-medium text-neutral-700">"{filters.q}"</span>
+              </>
+            ) : (
+              'Browse the full Green Star Store catalog.'
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -93,17 +101,29 @@ export function Catalog() {
           {!loading && !error && items.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <p className="text-lg font-medium text-neutral-900">
-                {hasActiveFilters ? 'No products match your filters' : 'No products found'}
+                {filters.q
+                  ? `No results for "${filters.q}"`
+                  : hasActiveFilters
+                    ? 'No products match your filters'
+                    : 'No products found'}
               </p>
               <p className="text-sm text-neutral-500">
-                {hasActiveFilters
-                  ? 'Try adjusting or clearing your filters.'
-                  : 'Check back later for new arrivals.'}
+                {filters.q
+                  ? 'Try a different search term or clear it to browse everything.'
+                  : hasActiveFilters
+                    ? 'Try adjusting or clearing your filters.'
+                    : 'Check back later for new arrivals.'}
               </p>
-              {hasActiveFilters && (
-                <Button variant="secondary" size="sm" onClick={clearFilters}>
-                  Clear filters
+              {filters.q ? (
+                <Button variant="secondary" size="sm" onClick={() => setFilter('q', undefined)}>
+                  Clear search
                 </Button>
+              ) : (
+                hasActiveFilters && (
+                  <Button variant="secondary" size="sm" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                )
               )}
             </div>
           )}
