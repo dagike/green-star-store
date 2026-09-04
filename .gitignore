@@ -6,6 +6,9 @@ dist
 dist-ssr
 *.local
 
+# test coverage
+coverage
+
 # env files
 .env
 .env.local
