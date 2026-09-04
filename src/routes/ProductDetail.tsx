@@ -1,5 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { Gallery } from '@/components/Gallery'
+import { RatingSummary } from '@/components/RatingSummary'
+import { ReviewList } from '@/components/ReviewList'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Stars } from '@/components/ui/Stars'
 import { formatMoney } from '@/lib/money'
@@ -44,7 +46,7 @@ export function ProductDetail() {
   if (loading) return <ProductDetailSkeleton />
   if (error || !data) return <ProductNotFound />
 
-  const { product, images } = data
+  const { product, images, reviews } = data
   const isOnSale = product.compareAtCents !== null && product.compareAtCents > product.priceCents
 
   return (
@@ -90,6 +92,12 @@ export function ProductDetail() {
 
           <p className="leading-relaxed text-neutral-600">{product.description}</p>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-6 border-t border-neutral-200 pt-8">
+        <h2 className="text-lg font-semibold text-neutral-900">Reviews</h2>
+        <RatingSummary avgRating={product.avgRating} reviews={reviews} />
+        <ReviewList reviews={reviews} />
       </div>
     </div>
   )
