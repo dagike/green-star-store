@@ -1,11 +1,40 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Gallery } from '@/components/Gallery'
 import { RatingSummary } from '@/components/RatingSummary'
 import { ReviewList } from '@/components/ReviewList'
+import { Button } from '@/components/ui/Button'
+import { QuantityPicker } from '@/components/ui/QuantityPicker'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Stars } from '@/components/ui/Stars'
+import { useToast } from '@/context/ToastContext'
 import { formatMoney } from '@/lib/money'
 import { useProduct } from '@/lib/useProduct'
+
+function StockIndicator({ stock }: { stock: number }) {
+  if (stock === 0) {
+    return (
+      <p className="flex items-center gap-1.5 text-sm font-medium text-red-600">
+        <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden="true" />
+        Out of stock
+      </p>
+    )
+  }
+  if (stock <= 4) {
+    return (
+      <p className="flex items-center gap-1.5 text-sm font-medium text-amber-600">
+        <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+        Only {stock} left
+      </p>
+    )
+  }
+  return (
+    <p className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+      <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+      In stock
+    </p>
+  )
+}
 
 function ProductDetailSkeleton() {
   return (
@@ -42,12 +71,26 @@ function ProductNotFound() {
 export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { data, loading, error } = useProduct(slug)
+  const { show } = useToast()
+
+  // Hooks must run unconditionally before the loading/not-found early returns below,
+  // so quantity state lives here rather than after `data` is confirmed.
+  const [quantity, setQuantity] = useState(1)
+  const [prevSlug, setPrevSlug] = useState(slug)
+  if (slug !== prevSlug) {
+    setPrevSlug(slug)
+    setQuantity(1)
+  }
 
   if (loading) return <ProductDetailSkeleton />
   if (error || !data) return <ProductNotFound />
 
   const { product, images, reviews } = data
   const isOnSale = product.compareAtCents !== null && product.compareAtCents > product.priceCents
+
+  function handleAddToCart() {
+    show(`Added ${quantity} × ${product.name} to your cart`, 'success')
+  }
 
   return (
     <div className="flex flex-col gap-8 py-8">
@@ -91,6 +134,26 @@ export function ProductDetail() {
           </div>
 
           <p className="leading-relaxed text-neutral-600">{product.description}</p>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <StockIndicator stock={product.stock} />
+            <div className="flex flex-wrap items-center gap-3">
+              <QuantityPicker
+                value={quantity}
+                max={Math.max(product.stock, 1)}
+                onChange={setQuantity}
+                disabled={product.stock === 0}
+              />
+              <Button
+                variant="primary"
+                disabled={product.stock === 0}
+                onClick={handleAddToCart}
+                className="flex-1 sm:flex-none"
+              >
+                Add to cart
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
