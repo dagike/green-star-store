@@ -5,7 +5,7 @@ import { OrderSummary } from '@/components/OrderSummary'
 import { PromoCodeForm } from '@/components/PromoCodeForm'
 import { CartIcon } from '@/components/icons'
 import { useCart } from '@/context/CartContext'
-import { calcSubtotal, calcTotals } from '@/lib/totals'
+import { calcPromoDiscount, calcSubtotal, calcTotals } from '@/lib/totals'
 import type { PromoApplyResponse } from '@/types'
 
 function EmptyCart() {
@@ -24,15 +24,6 @@ function EmptyCart() {
   )
 }
 
-// Applied promo is kept as kind/value rather than a fixed discount amount, so the discount
-// stays correct if quantities change after the code was applied (see PromoCodeForm).
-function discountFor(promo: PromoApplyResponse | null, subtotalCents: number): number {
-  if (!promo) return 0
-  if (promo.kind === 'percent') return Math.round((subtotalCents * promo.value) / 100)
-  if (promo.kind === 'fixed') return promo.value
-  return 0
-}
-
 export function Cart() {
   const { items, setQty, remove } = useCart()
   const [promo, setPromo] = useState<PromoApplyResponse | null>(null)
@@ -42,7 +33,7 @@ export function Cart() {
   const subtotalCents = calcSubtotal(items)
   const totals = calcTotals(
     items,
-    discountFor(promo, subtotalCents),
+    calcPromoDiscount(promo, subtotalCents),
     promo?.kind === 'free_shipping',
   )
 

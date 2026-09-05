@@ -1,6 +1,6 @@
 // Pure totals math shared by the cart page and checkout summary. Money in, money out —
 // always integer cents, no rendering here (see money.ts for formatting).
-import type { CartItem } from '@/types'
+import type { CartItem, PromoApplyResponse } from '@/types'
 
 export const SHIPPING_FLAT_CENTS = 599
 export const FREE_SHIPPING_THRESHOLD_CENTS = 7500
@@ -26,6 +26,15 @@ export function calcShipping(taxableCents: number, freeShipping = false): number
 
 export function calcTax(taxableCents: number): number {
   return Math.round(Math.max(taxableCents, 0) * TAX_RATE)
+}
+
+// Applied promo is kept as kind/value rather than a fixed discount amount, so the discount
+// stays correct if quantities change after the code was applied (see PromoCodeForm).
+export function calcPromoDiscount(promo: PromoApplyResponse | null, subtotalCents: number): number {
+  if (!promo) return 0
+  if (promo.kind === 'percent') return Math.round((subtotalCents * promo.value) / 100)
+  if (promo.kind === 'fixed') return promo.value
+  return 0
 }
 
 export function calcTotals(items: CartItem[], discountCents = 0, freeShipping = false): Totals {
