@@ -7,31 +7,24 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useCart } from '@/context/CartContext'
 import { calcTotals } from '@/lib/totals'
+import {
+  formatCardNumberInput,
+  formatExpiryInput,
+  validatePayment,
+  validatePaymentField,
+  validateShipping,
+  validateShippingField,
+  type PaymentErrors,
+  type PaymentInfo,
+  type ShippingErrors,
+  type ShippingInfo,
+} from '@/lib/validation'
 
 const STEPS: readonly Step[] = [
   { key: 'shipping', label: 'Shipping' },
   { key: 'payment', label: 'Payment' },
   { key: 'review', label: 'Review' },
 ]
-
-interface ShippingInfo {
-  fullName: string
-  email: string
-  address1: string
-  address2: string
-  city: string
-  state: string
-  postalCode: string
-  country: string
-  phone: string
-}
-
-interface PaymentInfo {
-  cardName: string
-  cardNumber: string
-  expiry: string
-  cvc: string
-}
 
 const emptyShipping: ShippingInfo = {
   fullName: '',
@@ -54,11 +47,15 @@ const emptyPayment: PaymentInfo = {
 
 function ShippingStep({
   value,
+  errors,
   onChange,
+  onBlur,
   onContinue,
 }: {
   value: ShippingInfo
+  errors: ShippingErrors
   onChange: (value: ShippingInfo) => void
+  onBlur: (key: keyof ShippingInfo) => void
   onContinue: () => void
 }) {
   function set<K extends keyof ShippingInfo>(key: K, fieldValue: ShippingInfo[K]) {
@@ -77,18 +74,24 @@ function ShippingStep({
       <Input
         label="Full name"
         value={value.fullName}
+        error={errors.fullName}
         onChange={(event) => set('fullName', event.target.value)}
+        onBlur={() => onBlur('fullName')}
       />
       <Input
         label="Email"
         type="email"
         value={value.email}
+        error={errors.email}
         onChange={(event) => set('email', event.target.value)}
+        onBlur={() => onBlur('email')}
       />
       <Input
         label="Address line 1"
         value={value.address1}
+        error={errors.address1}
         onChange={(event) => set('address1', event.target.value)}
+        onBlur={() => onBlur('address1')}
       />
       <Input
         label="Address line 2 (optional)"
@@ -99,19 +102,25 @@ function ShippingStep({
         <Input
           label="City"
           value={value.city}
+          error={errors.city}
           onChange={(event) => set('city', event.target.value)}
+          onBlur={() => onBlur('city')}
         />
         <Input
           label="State / province"
           value={value.state}
+          error={errors.state}
           onChange={(event) => set('state', event.target.value)}
+          onBlur={() => onBlur('state')}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Input
           label="Postal code"
           value={value.postalCode}
+          error={errors.postalCode}
           onChange={(event) => set('postalCode', event.target.value)}
+          onBlur={() => onBlur('postalCode')}
         />
         <Select
           label="Country"
@@ -127,7 +136,9 @@ function ShippingStep({
         label="Phone"
         type="tel"
         value={value.phone}
+        error={errors.phone}
         onChange={(event) => set('phone', event.target.value)}
+        onBlur={() => onBlur('phone')}
       />
 
       <div className="flex justify-end pt-2">
@@ -139,12 +150,16 @@ function ShippingStep({
 
 function PaymentStep({
   value,
+  errors,
   onChange,
+  onBlur,
   onContinue,
   onBack,
 }: {
   value: PaymentInfo
+  errors: PaymentErrors
   onChange: (value: PaymentInfo) => void
+  onBlur: (key: keyof PaymentInfo) => void
   onContinue: () => void
   onBack: () => void
 }) {
@@ -164,26 +179,37 @@ function PaymentStep({
       <Input
         label="Name on card"
         value={value.cardName}
+        error={errors.cardName}
         onChange={(event) => set('cardName', event.target.value)}
+        onBlur={() => onBlur('cardName')}
       />
       <Input
         label="Card number"
         inputMode="numeric"
+        maxLength={23}
         value={value.cardNumber}
-        onChange={(event) => set('cardNumber', event.target.value)}
+        error={errors.cardNumber}
+        onChange={(event) => set('cardNumber', formatCardNumberInput(event.target.value))}
+        onBlur={() => onBlur('cardNumber')}
       />
       <div className="grid grid-cols-2 gap-4">
         <Input
           label="Expiry (MM/YY)"
           placeholder="MM/YY"
+          maxLength={5}
           value={value.expiry}
-          onChange={(event) => set('expiry', event.target.value)}
+          error={errors.expiry}
+          onChange={(event) => set('expiry', formatExpiryInput(event.target.value))}
+          onBlur={() => onBlur('expiry')}
         />
         <Input
           label="CVC"
           inputMode="numeric"
+          maxLength={4}
           value={value.cvc}
-          onChange={(event) => set('cvc', event.target.value)}
+          error={errors.cvc}
+          onChange={(event) => set('cvc', event.target.value.replace(/\D/g, ''))}
+          onBlur={() => onBlur('cvc')}
         />
       </div>
 
@@ -247,6 +273,8 @@ export function Checkout() {
   const [maxReachedIndex, setMaxReachedIndex] = useState(0)
   const [shipping, setShipping] = useState<ShippingInfo>(emptyShipping)
   const [payment, setPayment] = useState<PaymentInfo>(emptyPayment)
+  const [shippingErrors, setShippingErrors] = useState<ShippingErrors>({})
+  const [paymentErrors, setPaymentErrors] = useState<PaymentErrors>({})
 
   if (items.length === 0) return <Navigate to="/cart" replace />
 
@@ -266,6 +294,26 @@ export function Checkout() {
     setStepIndex((current) => Math.max(current - 1, 0))
   }
 
+  function handleShippingBlur(key: keyof ShippingInfo) {
+    setShippingErrors((prev) => ({ ...prev, [key]: validateShippingField(key, shipping[key]) }))
+  }
+
+  function handleShippingSubmit() {
+    const errors = validateShipping(shipping)
+    setShippingErrors(errors)
+    if (Object.keys(errors).length === 0) goNext()
+  }
+
+  function handlePaymentBlur(key: keyof PaymentInfo) {
+    setPaymentErrors((prev) => ({ ...prev, [key]: validatePaymentField(key, payment[key]) }))
+  }
+
+  function handlePaymentSubmit() {
+    const errors = validatePayment(payment)
+    setPaymentErrors(errors)
+    if (Object.keys(errors).length === 0) goNext()
+  }
+
   return (
     <div className="flex flex-col gap-8 py-8">
       <h1 className="text-2xl font-semibold text-neutral-900">Checkout</h1>
@@ -281,13 +329,21 @@ export function Checkout() {
 
           <div className="rounded-xl border border-neutral-200 bg-white p-6">
             {stepIndex === 0 && (
-              <ShippingStep value={shipping} onChange={setShipping} onContinue={goNext} />
+              <ShippingStep
+                value={shipping}
+                errors={shippingErrors}
+                onChange={setShipping}
+                onBlur={handleShippingBlur}
+                onContinue={handleShippingSubmit}
+              />
             )}
             {stepIndex === 1 && (
               <PaymentStep
                 value={payment}
+                errors={paymentErrors}
                 onChange={setPayment}
-                onContinue={goNext}
+                onBlur={handlePaymentBlur}
+                onContinue={handlePaymentSubmit}
                 onBack={goBack}
               />
             )}
