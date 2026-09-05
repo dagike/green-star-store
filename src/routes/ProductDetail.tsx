@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Gallery } from '@/components/Gallery'
 import { RatingSummary } from '@/components/RatingSummary'
+import { RelatedProducts } from '@/components/RelatedProducts'
 import { ReviewList } from '@/components/ReviewList'
 import { Button } from '@/components/ui/Button'
 import { QuantityPicker } from '@/components/ui/QuantityPicker'
@@ -85,7 +86,7 @@ export function ProductDetail() {
   if (loading) return <ProductDetailSkeleton />
   if (error || !data) return <ProductNotFound />
 
-  const { product, images, reviews } = data
+  const { product, images, reviews, related } = data
   const isOnSale = product.compareAtCents !== null && product.compareAtCents > product.priceCents
 
   function handleAddToCart() {
@@ -162,6 +163,8 @@ export function ProductDetail() {
         <RatingSummary avgRating={product.avgRating} reviews={reviews} />
         <ReviewList reviews={reviews} />
       </div>
+
+      <RelatedProducts products={related} />
     </div>
   )
 }
