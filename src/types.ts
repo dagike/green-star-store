@@ -132,3 +132,45 @@ export interface WishlistItem {
   compareAtCents: number | null
   stock: number
 }
+
+export interface OrderAddress {
+  fullName: string
+  address1: string
+  address2: string
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  phone: string
+}
+
+export interface OrderItem {
+  productId: number
+  slug: string
+  name: string
+  thumbnail: string | null
+  priceCents: number
+  quantity: number
+}
+
+export interface Order {
+  orderNumber: string
+  email: string
+  items: OrderItem[]
+  address: OrderAddress
+  subtotalCents: number
+  discountCents: number
+  shippingCents: number
+  taxCents: number
+  totalCents: number
+  status: string
+  estimatedDelivery: string
+  createdAt: string
+}
+
+export interface CreateOrderRequest {
+  email: string
+  address: OrderAddress
+  items: { productId: number; quantity: number }[]
+  promoCode?: string | null
+}

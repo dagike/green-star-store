@@ -2,6 +2,8 @@
 // go through the Vite dev proxy locally and hit the same origin in production.
 import type {
   CategoriesResponse,
+  CreateOrderRequest,
+  Order,
   ProductDetailResponse,
   ProductListParams,
   ProductListResponse,
@@ -87,4 +89,12 @@ export function getSuggestions(q: string): Promise<SuggestResponse> {
 
 export function applyPromoCode(code: string, subtotalCents: number): Promise<PromoApplyResponse> {
   return post<PromoApplyResponse>('/api/promo', { code, subtotalCents })
+}
+
+export function createOrder(order: CreateOrderRequest): Promise<Order> {
+  return post<Order>('/api/orders', order)
+}
+
+export function getOrder(orderNumber: string): Promise<Order> {
+  return request<Order>(`/api/orders/${encodeURIComponent(orderNumber)}`)
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { OrderSummary } from '@/components/OrderSummary'
 import { StepIndicator, type Step } from '@/components/StepIndicator'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useCart } from '@/context/CartContext'
+import { ApiError, createOrder } from '@/lib/api'
 import { calcTotals } from '@/lib/totals'
 import {
   formatCardNumberInput,
@@ -226,11 +227,17 @@ function PaymentStep({
 function ReviewStep({
   shipping,
   payment,
+  placing,
+  placeError,
   onBack,
+  onPlaceOrder,
 }: {
   shipping: ShippingInfo
   payment: PaymentInfo
+  placing: boolean
+  placeError: string | null
   onBack: () => void
+  onPlaceOrder: () => void
 }) {
   const last4 = payment.cardNumber.replace(/\D/g, '').slice(-4)
 
@@ -256,25 +263,31 @@ function ReviewStep({
         <p className="text-neutral-500">{payment.cardName || '—'}</p>
       </div>
 
+      {placeError && <p className="text-sm text-red-600">{placeError}</p>}
+
       <div className="flex justify-between pt-2">
-        <Button type="button" variant="secondary" onClick={onBack}>
+        <Button type="button" variant="secondary" onClick={onBack} disabled={placing}>
           Back
         </Button>
-        {/* Order submission is wired up once the order API lands. */}
-        <Button type="button">Place order</Button>
+        <Button type="button" loading={placing} onClick={onPlaceOrder}>
+          Place order
+        </Button>
       </div>
     </div>
   )
 }
 
 export function Checkout() {
-  const { items } = useCart()
+  const { items, clear } = useCart()
+  const navigate = useNavigate()
   const [stepIndex, setStepIndex] = useState(0)
   const [maxReachedIndex, setMaxReachedIndex] = useState(0)
   const [shipping, setShipping] = useState<ShippingInfo>(emptyShipping)
   const [payment, setPayment] = useState<PaymentInfo>(emptyPayment)
   const [shippingErrors, setShippingErrors] = useState<ShippingErrors>({})
   const [paymentErrors, setPaymentErrors] = useState<PaymentErrors>({})
+  const [placing, setPlacing] = useState(false)
+  const [placeError, setPlaceError] = useState<string | null>(null)
 
   if (items.length === 0) return <Navigate to="/cart" replace />
 
@@ -314,6 +327,33 @@ export function Checkout() {
     if (Object.keys(errors).length === 0) goNext()
   }
 
+  async function handlePlaceOrder() {
+    setPlacing(true)
+    setPlaceError(null)
+    try {
+      const order = await createOrder({
+        email: shipping.email,
+        address: {
+          fullName: shipping.fullName,
+          address1: shipping.address1,
+          address2: shipping.address2,
+          city: shipping.city,
+          state: shipping.state,
+          postalCode: shipping.postalCode,
+          country: shipping.country,
+          phone: shipping.phone,
+        },
+        items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+      })
+      clear()
+      navigate(`/order/${order.orderNumber}`)
+    } catch (err) {
+      setPlaceError(err instanceof ApiError ? err.message : 'Something went wrong, try again')
+    } finally {
+      setPlacing(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-8 py-8">
       <h1 className="text-2xl font-semibold text-neutral-900">Checkout</h1>
@@ -348,7 +388,14 @@ export function Checkout() {
               />
             )}
             {stepIndex === 2 && (
-              <ReviewStep shipping={shipping} payment={payment} onBack={goBack} />
+              <ReviewStep
+                shipping={shipping}
+                payment={payment}
+                placing={placing}
+                placeError={placeError}
+                onBack={goBack}
+                onPlaceOrder={handlePlaceOrder}
+              />
             )}
           </div>
         </div>
