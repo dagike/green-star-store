@@ -98,3 +98,7 @@ export function createOrder(order: CreateOrderRequest): Promise<Order> {
 export function getOrder(orderNumber: string): Promise<Order> {
   return request<Order>(`/api/orders/${encodeURIComponent(orderNumber)}`)
 }
+
+export function getOrdersByEmail(email: string): Promise<Order[]> {
+  return request<Order[]>(`/api/orders${buildQuery({ email })}`)
+}

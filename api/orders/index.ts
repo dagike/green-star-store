@@ -1,8 +1,10 @@
-// Creates an order. Prices are never trusted from the client - only product ids and
-// quantities are taken from the request; everything money-related is re-read from the
-// database and recomputed here (see _order-totals.ts), the same way promo.ts re-validates
-// codes against the DB rather than trusting an applied discount amount.
+// Creates an order (POST) and lists a shopper's past orders by email (GET). Prices are
+// never trusted from the client - only product ids and quantities are taken from the
+// request; everything money-related is re-read from the database and recomputed here
+// (see _order-totals.ts), the same way promo.ts re-validates codes against the DB rather
+// than trusting an applied discount amount.
 import { randomInt } from 'node:crypto'
+import { param } from '../_params.js'
 import { getSql } from '../_db.js'
 import { calcOrderTotals } from '../_order-totals.js'
 import { toOrderResponse, type OrderAddress, type OrderItem, type OrderRow } from '../_orders.js'
@@ -89,12 +91,32 @@ function isUniqueViolation(err: unknown): boolean {
   return typeof err === 'object' && err !== null && 'code' in err && err.code === '23505'
 }
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' })
+async function handleList(req: ApiRequest, res: ApiResponse) {
+  const email = (param(req.query, 'email') ?? '').trim()
+  if (!email) {
+    res.status(400).json({ error: 'Enter an email address' })
     return
   }
 
+  try {
+    const sql = getSql()
+    const rows = (await sql.query(
+      `select order_number, email, items, address, subtotal_cents, discount_cents,
+              shipping_cents, tax_cents, total_cents, status, estimated_delivery, created_at
+       from orders
+       where lower(email) = lower($1)
+       order by created_at desc`,
+      [email],
+    )) as OrderRow[]
+
+    res.status(200).json(rows.map(toOrderResponse))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to load orders' })
+  }
+}
+
+async function handleCreate(req: ApiRequest, res: ApiResponse) {
   const body = (req.body ?? {}) as Record<string, unknown>
   const email = typeof body.email === 'string' ? body.email.trim() : ''
   const address = parseAddress(body.address)
@@ -214,4 +236,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     console.error(err)
     res.status(500).json({ error: 'Failed to place order' })
   }
+}
+
+export default async function handler(req: ApiRequest, res: ApiResponse) {
+  if (req.method === 'GET') return handleList(req, res)
+  if (req.method === 'POST') return handleCreate(req, res)
+  res.status(405).json({ error: 'Method not allowed' })
 }
