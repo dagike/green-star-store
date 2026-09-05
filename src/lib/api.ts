@@ -5,6 +5,7 @@ import type {
   ProductDetailResponse,
   ProductListParams,
   ProductListResponse,
+  PromoApplyResponse,
   SuggestResponse,
 } from '@/types'
 
@@ -18,9 +19,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string): Promise<T> {
-  const res = await fetch(path)
-
+async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body: unknown = await res.json().catch(() => null)
     const message =
@@ -31,6 +30,18 @@ async function request<T>(path: string): Promise<T> {
   }
 
   return res.json() as Promise<T>
+}
+
+function request<T>(path: string): Promise<T> {
+  return fetch(path).then(handleResponse<T>)
+}
+
+function post<T>(path: string, body: unknown): Promise<T> {
+  return fetch(path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then(handleResponse<T>)
 }
 
 type QueryValue = string | number | boolean | undefined | null
@@ -72,4 +83,8 @@ export function getCategories(): Promise<CategoriesResponse> {
 
 export function getSuggestions(q: string): Promise<SuggestResponse> {
   return request<SuggestResponse>(`/api/suggest${buildQuery({ q })}`)
+}
+
+export function applyPromoCode(code: string, subtotalCents: number): Promise<PromoApplyResponse> {
+  return post<PromoApplyResponse>('/api/promo', { code, subtotalCents })
 }

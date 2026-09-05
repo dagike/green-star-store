@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CartLine } from '@/components/CartLine'
 import { OrderSummary } from '@/components/OrderSummary'
+import { PromoCodeForm } from '@/components/PromoCodeForm'
 import { CartIcon } from '@/components/icons'
 import { useCart } from '@/context/CartContext'
-import { calcTotals } from '@/lib/totals'
+import { calcSubtotal, calcTotals } from '@/lib/totals'
+import type { PromoApplyResponse } from '@/types'
 
 function EmptyCart() {
   return (
@@ -21,12 +24,27 @@ function EmptyCart() {
   )
 }
 
+// Applied promo is kept as kind/value rather than a fixed discount amount, so the discount
+// stays correct if quantities change after the code was applied (see PromoCodeForm).
+function discountFor(promo: PromoApplyResponse | null, subtotalCents: number): number {
+  if (!promo) return 0
+  if (promo.kind === 'percent') return Math.round((subtotalCents * promo.value) / 100)
+  if (promo.kind === 'fixed') return promo.value
+  return 0
+}
+
 export function Cart() {
   const { items, setQty, remove } = useCart()
+  const [promo, setPromo] = useState<PromoApplyResponse | null>(null)
 
   if (items.length === 0) return <EmptyCart />
 
-  const totals = calcTotals(items)
+  const subtotalCents = calcSubtotal(items)
+  const totals = calcTotals(
+    items,
+    discountFor(promo, subtotalCents),
+    promo?.kind === 'free_shipping',
+  )
 
   return (
     <div className="flex flex-col gap-8 py-8">
@@ -44,7 +62,13 @@ export function Cart() {
           ))}
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="flex flex-col gap-4 lg:col-span-1">
+          <PromoCodeForm
+            subtotalCents={subtotalCents}
+            applied={promo}
+            onApply={setPromo}
+            onRemove={() => setPromo(null)}
+          />
           <OrderSummary totals={totals}>
             <Link
               to="/checkout"

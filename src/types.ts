@@ -102,6 +102,14 @@ export interface SuggestResponse {
   items: Suggestion[]
 }
 
+export type PromoKind = 'percent' | 'fixed' | 'free_shipping'
+
+export interface PromoApplyResponse {
+  code: string
+  kind: PromoKind
+  value: number
+}
+
 export interface CartItem {
   productId: number
   slug: string
