@@ -101,3 +101,15 @@ export interface Suggestion {
 export interface SuggestResponse {
   items: Suggestion[]
 }
+
+export interface CartItem {
+  productId: number
+  slug: string
+  name: string
+  brand: string
+  thumbnail: string | null
+  priceCents: number
+  compareAtCents: number | null
+  stock: number
+  quantity: number
+}

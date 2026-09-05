@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { QuantityPicker } from '@/components/ui/QuantityPicker'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Stars } from '@/components/ui/Stars'
+import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import { formatMoney } from '@/lib/money'
 import { useProduct } from '@/lib/useProduct'
@@ -73,6 +74,7 @@ export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { data, loading, error } = useProduct(slug)
   const { show } = useToast()
+  const { add } = useCart()
 
   // Hooks must run unconditionally before the loading/not-found early returns below,
   // so quantity state lives here rather than after `data` is confirmed.
@@ -90,6 +92,19 @@ export function ProductDetail() {
   const isOnSale = product.compareAtCents !== null && product.compareAtCents > product.priceCents
 
   function handleAddToCart() {
+    add(
+      {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        brand: product.brand,
+        thumbnail: images[0]?.url ?? null,
+        priceCents: product.priceCents,
+        compareAtCents: product.compareAtCents,
+        stock: product.stock,
+      },
+      quantity,
+    )
     show(`Added ${quantity} × ${product.name} to your cart`, 'success')
   }
 
