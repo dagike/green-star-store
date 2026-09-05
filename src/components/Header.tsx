@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { CartIcon, CloseIcon, HeartIcon, MenuIcon, StarIcon, UserIcon } from './icons'
 import { SearchBar } from './SearchBar'
 
@@ -14,9 +15,6 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `text-sm font-medium transition-colors hover:text-brand-700 ${
     isActive ? 'text-brand-700' : 'text-neutral-600'
   }`
-
-// TODO(commit 22): live wishlist count from context.
-const wishlistCount = 0
 
 function IconLink({
   to,
@@ -48,6 +46,7 @@ function IconLink({
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { count: cartCount } = useCart()
+  const { count: wishlistCount } = useWishlist()
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { QuantityPicker } from '@/components/ui/QuantityPicker'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Stars } from '@/components/ui/Stars'
+import { WishlistButton } from '@/components/WishlistButton'
 import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import { formatMoney } from '@/lib/money'
@@ -168,6 +169,19 @@ export function ProductDetail() {
               >
                 Add to cart
               </Button>
+              <WishlistButton
+                size="lg"
+                item={{
+                  productId: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  brand: product.brand,
+                  thumbnail: images[0]?.url ?? null,
+                  priceCents: product.priceCents,
+                  compareAtCents: product.compareAtCents,
+                  stock: product.stock,
+                }}
+              />
             </div>
           </div>
         </div>

@@ -121,3 +121,14 @@ export interface CartItem {
   stock: number
   quantity: number
 }
+
+export interface WishlistItem {
+  productId: number
+  slug: string
+  name: string
+  brand: string
+  thumbnail: string | null
+  priceCents: number
+  compareAtCents: number | null
+  stock: number
+}

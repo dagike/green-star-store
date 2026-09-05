@@ -3,6 +3,7 @@ import { formatMoney } from '@/lib/money'
 import type { ProductSummary } from '@/types'
 import { Badge } from './ui/Badge'
 import { Stars } from './ui/Stars'
+import { WishlistButton } from './WishlistButton'
 
 interface ProductCardProps {
   product: ProductSummary
@@ -51,11 +52,21 @@ export function ProductCard({ product }: ProductCardProps) {
           {!isOutOfStock && isLowStock && <Badge variant="warning">Only {stock} left</Badge>}
         </div>
 
-        {isOnSale && !isOutOfStock && (
-          <div className="absolute right-2 top-2">
-            <Badge variant="brand">Sale</Badge>
-          </div>
-        )}
+        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+          <WishlistButton
+            item={{
+              productId: product.id,
+              slug,
+              name,
+              brand,
+              thumbnail,
+              priceCents,
+              compareAtCents,
+              stock,
+            }}
+          />
+          {isOnSale && !isOutOfStock && <Badge variant="brand">Sale</Badge>}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3">
