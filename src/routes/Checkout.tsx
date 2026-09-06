@@ -288,8 +288,12 @@ export function Checkout() {
   const [paymentErrors, setPaymentErrors] = useState<PaymentErrors>({})
   const [placing, setPlacing] = useState(false)
   const [placeError, setPlaceError] = useState<string | null>(null)
+  const [orderPlaced, setOrderPlaced] = useState(false)
 
-  if (items.length === 0) return <Navigate to="/cart" replace />
+  // Once an order is placed, clearing the cart makes `items` empty on this same render
+  // pass, before the navigate to the confirmation page has taken effect - without this
+  // flag, the guard below would redirect to the (now-empty) cart instead.
+  if (items.length === 0 && !orderPlaced) return <Navigate to="/cart" replace />
 
   const totals = calcTotals(items)
 
@@ -345,6 +349,7 @@ export function Checkout() {
         },
         items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
       })
+      setOrderPlaced(true)
       clear()
       navigate(`/order/${order.orderNumber}`)
     } catch (err) {
