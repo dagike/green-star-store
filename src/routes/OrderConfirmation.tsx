@@ -5,7 +5,11 @@ import { formatMoney } from '@/lib/money'
 import { useOrder } from '@/lib/useOrder'
 
 function formatDate(isoDate: string): string {
-  const date = new Date(`${isoDate}T00:00:00`)
+  // isoDate is expected to be a plain "YYYY-MM-DD" - slice defensively in case a date-only
+  // value ever arrives with a time/zone suffix attached, so appending T00:00:00 below can't
+  // produce an invalid Date and crash this page's render.
+  const date = new Date(`${isoDate.slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return isoDate
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     year: 'numeric',

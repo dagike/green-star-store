@@ -30,7 +30,10 @@ export interface OrderRow {
   tax_cents: number
   total_cents: number
   status: string
-  estimated_delivery: string
+  // The driver hands `date` columns back as JS Date objects, not strings - despite what
+  // this type says at compile time. Normalize with toDateOnly() before this ever reaches
+  // a client, or JSON.stringify will silently expand it to a full UTC timestamp.
+  estimated_delivery: string | Date
   created_at: string
 }
 
@@ -49,6 +52,13 @@ export interface OrderResponse {
   createdAt: string
 }
 
+// Postgres `date` columns arrive as a Date (midnight UTC) or, in some drivers/paths, as an
+// already-plain "YYYY-MM-DD" string - normalize either shape to the plain string so callers
+// never have to guess which one they got.
+function toDateOnly(value: string | Date): string {
+  return value instanceof Date ? value.toISOString().slice(0, 10) : value.slice(0, 10)
+}
+
 export function toOrderResponse(row: OrderRow): OrderResponse {
   return {
     orderNumber: row.order_number,
@@ -61,7 +71,7 @@ export function toOrderResponse(row: OrderRow): OrderResponse {
     taxCents: row.tax_cents,
     totalCents: row.total_cents,
     status: row.status,
-    estimatedDelivery: row.estimated_delivery,
+    estimatedDelivery: toDateOnly(row.estimated_delivery),
     createdAt: row.created_at,
   }
 }
