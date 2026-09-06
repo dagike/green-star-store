@@ -158,13 +158,17 @@ async function handleCreate(req: ApiRequest, res: ApiResponse) {
         res.status(400).json({ error: 'One or more items are no longer available' })
         return
       }
+      if (product.stock <= 0) {
+        res.status(400).json({ error: 'One or more items are no longer available' })
+        return
+      }
       orderItems.push({
         productId: product.id,
         slug: product.slug,
         name: product.name,
         thumbnail: product.thumbnail,
         priceCents: product.price_cents,
-        quantity: Math.min(Math.max(requested.quantity, 1), Math.max(product.stock, 1)),
+        quantity: Math.min(Math.max(requested.quantity, 1), product.stock),
       })
     }
 
