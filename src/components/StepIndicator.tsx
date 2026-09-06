@@ -30,7 +30,7 @@ export function StepIndicator({
               disabled={!isReachable}
               onClick={() => onSelect(index)}
               aria-current={isCurrent ? 'step' : undefined}
-              className={`flex items-center gap-2 rounded-full ${
+              className={`flex items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                 isReachable ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
               }`}
             >

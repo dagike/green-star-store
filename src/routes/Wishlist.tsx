@@ -59,7 +59,7 @@ export function Wishlist() {
           >
             <Link
               to={`/products/${item.slug}`}
-              className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-100"
+              className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
             >
               {item.thumbnail ? (
                 <img src={item.thumbnail} alt={item.name} className="h-full w-full object-cover" />

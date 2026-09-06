@@ -263,7 +263,11 @@ function ReviewStep({
         <p className="text-neutral-500">{payment.cardName || '—'}</p>
       </div>
 
-      {placeError && <p className="text-sm text-red-600">{placeError}</p>}
+      {placeError && (
+        <p role="alert" className="text-sm text-red-600">
+          {placeError}
+        </p>
+      )}
 
       <div className="flex justify-between pt-2">
         <Button type="button" variant="secondary" onClick={onBack} disabled={placing}>

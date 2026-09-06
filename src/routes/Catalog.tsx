@@ -67,6 +67,8 @@ export function Catalog() {
             variant="secondary"
             size="sm"
             className="lg:hidden"
+            aria-haspopup="dialog"
+            aria-expanded={filtersOpen}
             onClick={() => setFiltersOpen(true)}
           >
             Filters{hasActiveFilters ? ' •' : ''}

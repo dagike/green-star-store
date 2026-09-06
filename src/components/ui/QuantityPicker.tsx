@@ -48,7 +48,7 @@ export function QuantityPicker({
         aria-label="Decrease quantity"
         disabled={disabled || value <= min}
         onClick={() => onChange(clamp(value - 1))}
-        className="flex h-9 w-9 items-center justify-center text-neutral-600 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center text-neutral-600 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       >
         −
       </button>
@@ -61,14 +61,14 @@ export function QuantityPicker({
         onChange={(event) => setInputValue(event.target.value)}
         onBlur={commit}
         onKeyDown={handleKeyDown}
-        className="h-9 w-12 border-x border-neutral-300 text-center text-sm text-neutral-900 focus:outline-none disabled:bg-neutral-50"
+        className="h-9 w-12 border-x border-neutral-300 text-center text-sm text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:bg-neutral-50"
       />
       <button
         type="button"
         aria-label="Increase quantity"
         disabled={disabled || value >= max}
         onClick={() => onChange(clamp(value + 1))}
-        className="flex h-9 w-9 items-center justify-center text-neutral-600 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center text-neutral-600 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       >
         +
       </button>

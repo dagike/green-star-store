@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       to={`/products/${slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
     >
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
         {thumbnail ? (

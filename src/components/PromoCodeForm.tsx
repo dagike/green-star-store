@@ -60,13 +60,19 @@ export function PromoCodeForm({ subtotalCents, applied, onApply, onRemove }: Pro
           onChange={(event) => setCode(event.target.value)}
           placeholder="Promo code"
           aria-label="Promo code"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'promo-code-error' : undefined}
           className="flex-1"
         />
         <Button type="submit" variant="secondary" loading={loading} disabled={!code.trim()}>
           Apply
         </Button>
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p id="promo-code-error" role="alert" className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </form>
   )
 }

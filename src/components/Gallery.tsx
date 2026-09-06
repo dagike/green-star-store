@@ -77,7 +77,7 @@ export function Gallery({ images, productName }: GalleryProps) {
               type="button"
               aria-label="Previous image"
               onClick={() => go(-1)}
-              className="absolute top-1/2 left-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
+              className="absolute top-1/2 left-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
             >
               <ChevronLeftIcon className="h-4 w-4" />
             </button>
@@ -85,7 +85,7 @@ export function Gallery({ images, productName }: GalleryProps) {
               type="button"
               aria-label="Next image"
               onClick={() => go(1)}
-              className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
+              className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
             >
               <ChevronRightIcon className="h-4 w-4" />
             </button>
@@ -102,7 +102,7 @@ export function Gallery({ images, productName }: GalleryProps) {
               onClick={() => setActiveIndex(index)}
               aria-label={`View image ${index + 1} of ${images.length}`}
               aria-current={index === activeIndex}
-              className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${
+              className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                 index === activeIndex ? 'border-brand-600' : 'border-transparent'
               }`}
             >

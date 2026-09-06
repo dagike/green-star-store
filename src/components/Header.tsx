@@ -33,7 +33,7 @@ function IconLink({
     <NavLink
       to={to}
       aria-label={`${label}${count > 0 ? ` (${count} items)` : ''}`}
-      className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700"
+      className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
     >
       {icon}
       {count > 0 && (
@@ -87,16 +87,17 @@ export function Header() {
           <NavLink
             to="/account/orders"
             aria-label="Account"
-            className="hidden h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 md:flex"
+            className="hidden h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 md:flex"
           >
             <UserIcon className="h-5 w-5" />
           </NavLink>
           <button
             type="button"
             aria-label="Open menu"
+            aria-haspopup="dialog"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 md:hidden"
           >
             <MenuIcon className="h-5 w-5" />
           </button>
