@@ -6,11 +6,17 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { Client } from 'pg'
 
+interface ProductType {
+  name: string
+  // Unsplash photo ids, specific to this product type (not a shared category pool) -
+  // each type shows real, matching photos rather than a generic per-category grab-bag.
+  images: string[]
+}
+
 interface Category {
   key: string
   brands: string[]
-  types: string[]
-  images: string[]
+  types: ProductType[]
   basePriceCents: number
   priceSpanCents: number
 }
@@ -20,35 +26,54 @@ const CATEGORIES: Category[] = [
     key: 'electronics',
     brands: ['Voltix', 'Aetherio', 'Nimbus', 'Corex', 'Pulseon'],
     types: [
-      'Wireless Headphones',
-      'Bluetooth Speaker',
-      'Smart Watch',
-      'Noise-Cancelling Earbuds',
-      '4K Action Camera',
-      'Portable Charger',
-      'Mechanical Keyboard',
-      'Wireless Mouse',
-      'Smart Home Hub',
-      'Fitness Tracker',
-      'Tablet Stand',
-      'USB-C Hub',
-      'HD Webcam',
-      'Laptop Sleeve',
-      'LED Desk Lamp',
-    ],
-    images: [
-      '1523275335684-37898b6baf30',
-      '1583394838336-acd977736f90',
-      '1524758631624-e2822e304c36',
-      '1496181133206-80ce9b88a853',
-      '1585386959984-a4155224a1ad',
-      '1546435770-a3e426bf472b',
-      '1502920917128-1aa500764cbd',
-      '1595950653106-6c9ebd614d3a',
-      '1441986300917-64674bd600d8',
-      '1524592094714-0f0654e20314',
-      '1511707171634-5f897ff02aa9',
-      '1608231387042-66d1773070a5',
+      {
+        name: 'Wireless Headphones',
+        images: ['1505740420928-5e560c06d30e', '1618366712010-f4ae9c647dcb'],
+      },
+      {
+        name: 'Bluetooth Speaker',
+        images: ['1608043152269-423dbba4e7e1', '1589256469067-ea99122bbdc4'],
+      },
+      { name: 'Smart Watch', images: ['1579586337278-3befd40fd17a', '1546868871-7041f2a55e12'] },
+      {
+        name: 'Noise-Cancelling Earbuds',
+        images: ['1572569511254-d8f925fe2cbb', '1590658268037-6bf12165a8df'],
+      },
+      {
+        name: '4K Action Camera',
+        images: ['1484506399805-c273b8e91dce', '1562878671-b3efe27953b9'],
+      },
+      {
+        name: 'Portable Charger',
+        images: ['1585995603413-eb35b5f4a50b', '1566554738544-d962991c3fee'],
+      },
+      {
+        name: 'Mechanical Keyboard',
+        images: ['1618384887929-16ec33fab9ef', '1547394765-185e1e68f34e'],
+      },
+      {
+        name: 'Wireless Mouse',
+        images: ['1527864550417-7fd91fc51a46', '1615663245857-ac93bb7c39e7'],
+      },
+      {
+        name: 'Smart Home Hub',
+        images: ['1650682009477-52fd77302b78', '1571251455684-2eb131fdb294'],
+      },
+      {
+        name: 'Fitness Tracker',
+        images: ['1576243345690-4e4b79b63288', '1620213391117-0d169a917221'],
+      },
+      {
+        name: 'Tablet Stand',
+        images: ['1679759799183-8899c0d67b43', '1652863299050-15c836e15ae4'],
+      },
+      { name: 'USB-C Hub', images: ['1616578273461-3a99ce422de6', '1616578273577-5d54546f4dec'] },
+      { name: 'HD Webcam', images: ['1623949556303-b0d17d198863', '1726127461372-547b9ffa4236'] },
+      {
+        name: 'Laptop Sleeve',
+        images: ['1689757855413-9e366c2011f1', '1675668409245-955188b96bf6'],
+      },
+      { name: 'LED Desk Lamp', images: ['1570974802254-4b0ad1a755f5', '1543512214-4f76e81f8bfc'] },
     ],
     basePriceCents: 2999,
     priceSpanCents: 22000,
@@ -57,33 +82,51 @@ const CATEGORIES: Category[] = [
     key: 'apparel',
     brands: ['Northfield', 'Loomwear', 'Driftline', 'Cascade Co', 'Solstice'],
     types: [
-      'Cotton T-Shirt',
-      'Denim Jacket',
-      'Running Shoes',
-      'Wool Sweater',
-      'Slim Fit Chinos',
-      'Rain Jacket',
-      'Graphic Hoodie',
-      'Canvas Sneakers',
-      'Athletic Shorts',
-      'Flannel Shirt',
-      'Puffer Vest',
-      'Leather Belt',
-      'Beanie Hat',
-      'Ankle Socks (3-Pack)',
-      'Track Jacket',
-    ],
-    images: [
-      '1542291026-7eec264c27ff',
-      '1523381210434-271e8be1f52b',
-      '1560343090-f0409e92791a',
-      '1560243563-062bfc001d68',
-      '1521572163474-6864f9cf17ab',
-      '1576566588028-4147f3842f27',
-      '1491553895911-0055eca6402d',
-      '1562157873-818bc0726f68',
-      '1548036328-c9fa89d128fa',
-      '1484704849700-f032a568e944',
+      {
+        name: 'Cotton T-Shirt',
+        images: ['1529374255404-311a2a4f1fd9', '1693443687750-611ad77f3aba'],
+      },
+      { name: 'Denim Jacket', images: ['1611312449408-fcece27cdbb7', '1543076447-215ad9ba6923'] },
+      { name: 'Running Shoes', images: ['1542291026-7eec264c27ff', '1606107557195-0e29a4b5b4aa'] },
+      {
+        name: 'Wool Sweater',
+        images: ['1574201635302-388dd92a4c3f', '1601379327928-bedfaf9da2d0'],
+      },
+      {
+        name: 'Slim Fit Chinos',
+        images: ['1624378441864-6eda7eac51cb', '1584865288642-42078afe6942'],
+      },
+      { name: 'Rain Jacket', images: ['1521223890158-f9f7c3d5d504', '1548883354-94bcfe321cbb'] },
+      {
+        name: 'Graphic Hoodie',
+        images: ['1620799140188-3b2a02fd9a77', '1680292783974-a9a336c10366'],
+      },
+      {
+        name: 'Canvas Sneakers',
+        images: ['1562105962-2fbaaf107fe3', '1676379760823-ebf91f45de0b'],
+      },
+      {
+        name: 'Athletic Shorts',
+        images: ['1691315909393-c5c91e22760f', '1640943136566-3edeb13e3d3b'],
+      },
+      {
+        name: 'Flannel Shirt',
+        images: ['1698857494817-d244cb4231a8', '1611312449412-6cefac5dc3e4'],
+      },
+      { name: 'Puffer Vest', images: ['1636529109797-0749811c4916', '1780969393713-6742133843b5'] },
+      {
+        name: 'Leather Belt',
+        images: ['1664286074176-5206ee5dc878', '1664285612706-b32633c95820'],
+      },
+      { name: 'Beanie Hat', images: ['1576871337632-b9aef4c17ab9', '1633964124833-f4f3928c55bb'] },
+      {
+        name: 'Ankle Socks (3-Pack)',
+        images: ['1585499583264-491df5142e83', '1640026199235-c24aa417b552'],
+      },
+      {
+        name: 'Track Jacket',
+        images: ['1768983953826-231e8ef0b6dc', '1586360727847-108cbb274ad1'],
+      },
     ],
     basePriceCents: 1999,
     priceSpanCents: 11000,
@@ -92,27 +135,51 @@ const CATEGORIES: Category[] = [
     key: 'home',
     brands: ['Hearth & Co', 'Meadowlane', 'Urban Nest', 'Willow Grove', 'Copper Kettle'],
     types: [
-      'Ceramic Mug Set',
-      'Throw Blanket',
-      'Table Lamp',
-      'Succulent Planter',
-      'Scented Candle',
-      'Cutting Board',
-      'Wall Clock',
-      'Storage Baskets',
-      'Area Rug',
-      'Wine Glass Set',
-      'Cast Iron Skillet',
-      'Bath Towel Set',
-      'Picture Frame Set',
-      'Bookshelf Speaker Stand',
-      'Reed Diffuser',
-    ],
-    images: [
-      '1571945153237-4929e783af4a',
-      '1586023492125-27b2c045efd7',
-      '1513506003901-1e6a229e2d15',
-      '1519710164239-da123dc03ef4',
+      {
+        name: 'Ceramic Mug Set',
+        images: ['1616241673111-508b4662c707', '1666445844615-0a3930270f13'],
+      },
+      {
+        name: 'Throw Blanket',
+        images: ['1600369672770-985fd30004eb', '1602891867080-1d56348202a3'],
+      },
+      { name: 'Table Lamp', images: ['1517991104123-1d56a6e81ed9', '1585128719715-46776b56a0d1'] },
+      {
+        name: 'Succulent Planter',
+        images: ['1536069221282-d877868cad6b', '1595313269158-e5beea1a7cc0'],
+      },
+      { name: 'Scented Candle', images: ['1561212856-44e9bae482aa', '1601922046210-41e129a3e64a'] },
+      {
+        name: 'Cutting Board',
+        images: ['1666013942797-9daa4b8b3b4f', '1617695615794-a5abcece0f48'],
+      },
+      { name: 'Wall Clock', images: ['1563861826100-9cb868fdbe1c', '1533090161767-e6ffed986c88'] },
+      {
+        name: 'Storage Baskets',
+        images: ['1601330862030-1e08c703ac04', '1760182200277-fae00dfb149f'],
+      },
+      { name: 'Area Rug', images: ['1572123979839-3749e9973aba', '1698936061086-2bf99c7b9fc5'] },
+      { name: 'Wine Glass Set', images: ['1510812431401-41d2bd2722f3', '1547595628-c61a29f496f0'] },
+      {
+        name: 'Cast Iron Skillet',
+        images: ['1579805625996-db7b60587362', '1637739699971-7d4d5194e75c'],
+      },
+      {
+        name: 'Bath Towel Set',
+        images: ['1620626011761-996317b8d101', '1629079447777-1e605162dc8d'],
+      },
+      {
+        name: 'Picture Frame Set',
+        images: ['1543487945-139a97f387d5', '1626846116799-ad61f874f99d'],
+      },
+      {
+        name: 'Bookshelf Speaker Stand',
+        images: ['1767808569398-0103583e49e5', '1767808569406-cfcf06dcb441'],
+      },
+      {
+        name: 'Reed Diffuser',
+        images: ['1750433101196-604c1741a012', '1750433101188-8284e112d250'],
+      },
     ],
     basePriceCents: 1499,
     priceSpanCents: 8500,
@@ -121,28 +188,48 @@ const CATEGORIES: Category[] = [
     key: 'accessories',
     brands: ['Satchel & Sons', 'Northline', 'Glint', 'Pathfinder', 'Aura'],
     types: [
-      'Leather Wallet',
-      'Canvas Backpack',
-      'Aviator Sunglasses',
-      'Silk Scarf',
-      'Crossbody Bag',
-      'Travel Duffel',
-      'Phone Case',
-      'Card Holder',
-      'Wide Brim Hat',
-      'Analog Watch',
-      'Tote Bag',
-      'Keychain Multi-tool',
-      'Compact Umbrella',
-      'Laptop Bag',
-      'Sunglasses Case',
-    ],
-    images: [
-      '1517336714731-489689fd1ca8',
-      '1526170375885-4d8ecf77b99f',
-      '1572635196237-14b3f281503f',
-      '1508296695146-257a814070b4',
-      '1553062407-98eeb64c6a62',
+      {
+        name: 'Leather Wallet',
+        images: ['1627123424574-724758594e93', '1601592996763-f05c9c80a7f1'],
+      },
+      {
+        name: 'Canvas Backpack',
+        images: ['1602845860431-35374f24f48d', '1491637639811-60e2756cc1c7'],
+      },
+      {
+        name: 'Aviator Sunglasses',
+        images: ['1567473810954-507d59716c25', '1562548726-43b650c82f8e'],
+      },
+      { name: 'Silk Scarf', images: ['1606259458027-54d2a728b6ab', '1517472292914-9570a594783b'] },
+      {
+        name: 'Crossbody Bag',
+        images: ['1605733513597-a8f8341084e6', '1620786514684-ff35b5aae55e'],
+      },
+      {
+        name: 'Travel Duffel',
+        images: ['1448582649076-3981753123b5', '1525103504173-8dc1582c7430'],
+      },
+      { name: 'Phone Case', images: ['1535157412991-2ef801c1748b', '1623393945964-8f5d573f9358'] },
+      { name: 'Card Holder', images: ['1560472355-536de3962603', '1637262448017-0fbbec87a898'] },
+      {
+        name: 'Wide Brim Hat',
+        images: ['1593476087123-36d1de271f08', '1612965292639-cd322db5ff9e'],
+      },
+      { name: 'Analog Watch', images: ['1542496658-e33a6d0d50f6', '1695345272166-4efd76dd7a21'] },
+      { name: 'Tote Bag', images: ['1574365569389-a10d488ca3fb', '1544816155-12df9643f363'] },
+      {
+        name: 'Keychain Multi-tool',
+        images: ['1575908539614-ff89490f4a78', '1677951570313-b0750351c461'],
+      },
+      {
+        name: 'Compact Umbrella',
+        images: ['1499678450342-29ebee16d1ab', '1519692933481-e162a57d6721'],
+      },
+      { name: 'Laptop Bag', images: ['1643033998438-38b4211fa2d5', '1554412664-6e7b242f969d'] },
+      {
+        name: 'Sunglasses Case',
+        images: ['1509695507497-903c140c43b0', '1556306535-38febf6782e7'],
+      },
     ],
     basePriceCents: 1999,
     priceSpanCents: 13000,
@@ -258,8 +345,8 @@ function buildProducts(): SeedProduct[] {
   CATEGORIES.forEach((category, catIndex) => {
     category.types.forEach((type, i) => {
       const brand = category.brands[i % category.brands.length]
-      const name = `${brand} ${type}`
-      const slug = `${category.key}-${slugify(brand)}-${slugify(type)}`
+      const name = `${brand} ${type.name}`
+      const slug = `${category.key}-${slugify(brand)}-${slugify(type.name)}`
 
       const rawPrice =
         category.basePriceCents + ((i * 733 + catIndex * 917) % category.priceSpanCents)
@@ -277,10 +364,7 @@ function buildProducts(): SeedProduct[] {
 
       const createdAt = new Date(now - (i + catIndex * 15) * dayMs)
 
-      const imageCount = 3 + (i % 2)
-      const images = Array.from({ length: imageCount }, (_, imgIdx) =>
-        imageUrl(category.images[(i + imgIdx) % category.images.length]),
-      )
+      const images = type.images.map(imageUrl)
 
       const reviewCount = 2 + (i % 5)
       const ratingCycle = [5, 4, 5, 3, 4, 5, 2, 4, 5, 3]
