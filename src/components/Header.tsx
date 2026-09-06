@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
-import { CartIcon, CloseIcon, HeartIcon, MenuIcon, StarIcon, UserIcon } from './icons'
+import { useCategories } from '@/lib/useCategories'
+import { Drawer } from './ui/Drawer'
+import { CartIcon, HeartIcon, MenuIcon, StarIcon, UserIcon } from './icons'
 import { SearchBar } from './SearchBar'
 
 const navLinks = [
@@ -47,6 +49,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { count: cartCount } = useCart()
   const { count: wishlistCount } = useWishlist()
+  const { categories } = useCategories()
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
@@ -90,19 +93,20 @@ export function Header() {
           </NavLink>
           <button
             type="button"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label="Open menu"
             aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((open) => !open)}
+            onClick={() => setMobileOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-brand-50 hover:text-brand-700 md:hidden"
           >
-            {mobileOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
+            <MenuIcon className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      {mobileOpen && (
-        <div className="border-t border-neutral-200 bg-white px-4 pt-3 pb-4 md:hidden">
-          <SearchBar className="mb-4" onSubmit={() => setMobileOpen(false)} />
+      <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} title="Menu" side="left">
+        <div className="flex flex-col gap-6">
+          <SearchBar onSubmit={() => setMobileOpen(false)} />
+
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <NavLink
@@ -120,8 +124,27 @@ export function Header() {
               </NavLink>
             ))}
           </nav>
+
+          {categories.length > 0 && (
+            <div className="flex flex-col gap-1 border-t border-neutral-200 pt-4">
+              <h3 className="px-3 pb-1 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
+                Categories
+              </h3>
+              {categories.map((category) => (
+                <NavLink
+                  key={category.category}
+                  to={`/products?category=${encodeURIComponent(category.category)}`}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+                >
+                  {category.category[0].toUpperCase() + category.category.slice(1)}
+                  <span className="ml-1 text-neutral-400">({category.count})</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </Drawer>
     </header>
   )
 }
