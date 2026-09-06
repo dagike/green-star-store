@@ -30,6 +30,7 @@ export function Cart() {
 
   if (items.length === 0) return <EmptyCart />
 
+  const hasOutOfStock = items.some((item) => item.stock === 0)
   const subtotalCents = calcSubtotal(items)
   const totals = calcTotals(
     items,
@@ -61,12 +62,27 @@ export function Cart() {
             onRemove={() => setPromo(null)}
           />
           <OrderSummary totals={totals}>
-            <Link
-              to="/checkout"
-              className="flex h-12 w-full items-center justify-center rounded-lg bg-brand-600 text-base font-medium text-white transition-colors hover:bg-brand-700"
-            >
-              Checkout
-            </Link>
+            {hasOutOfStock ? (
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  disabled
+                  className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-lg bg-neutral-200 text-base font-medium text-neutral-500"
+                >
+                  Checkout
+                </button>
+                <p className="text-center text-xs text-red-600">
+                  Remove out-of-stock items to check out
+                </p>
+              </div>
+            ) : (
+              <Link
+                to="/checkout"
+                className="flex h-12 w-full items-center justify-center rounded-lg bg-brand-600 text-base font-medium text-white transition-colors hover:bg-brand-700"
+              >
+                Checkout
+              </Link>
+            )}
           </OrderSummary>
         </div>
       </div>

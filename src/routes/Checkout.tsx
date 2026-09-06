@@ -298,6 +298,11 @@ export function Checkout() {
   // pass, before the navigate to the confirmation page has taken effect - without this
   // flag, the guard below would redirect to the (now-empty) cart instead.
   if (items.length === 0 && !orderPlaced) return <Navigate to="/cart" replace />
+  // The server rejects orders containing an out-of-stock item, so send the shopper back to
+  // the cart (where CartLine surfaces "Out of stock" and lets them remove it) rather than
+  // letting them fill out shipping/payment for a checkout that's guaranteed to fail. This
+  // also covers direct navigation to /checkout, which skips the Cart page's own guard.
+  if (items.some((item) => item.stock === 0) && !orderPlaced) return <Navigate to="/cart" replace />
 
   const totals = calcTotals(items)
 
