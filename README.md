@@ -6,6 +6,58 @@ codes; a multi-step checkout with validation; order confirmation and order histo
 reviews, orders) is real, seeded into Postgres and served from a small serverless API. Payments are mocked —
 no real charge is ever made.
 
+## Screenshots
+
+### Storefront
+
+The home page leads with a hero, category tiles, and a "Top rated" rail. Product cards surface sale
+pricing, low-stock ("Only 3 left") and out-of-stock badges, and a wishlist toggle.
+
+![Home page](images/main_page.png)
+
+### Catalog
+
+The shop page has a sidebar of filters (category, price range, minimum rating, in-stock only), a sort
+control, and an infinite-scroll grid.
+
+![Catalog with filters](images/catalog_page.png)
+
+### Product detail
+
+Each product has an image gallery, stock status, quantity control, add-to-cart and wishlist actions, and a
+reviews section with a rating breakdown.
+
+![Product detail page](images/product_page.png)
+
+### Cart and wishlist
+
+The cart supports quantity edits, line removal, promo codes, and a live order summary with subtotal,
+shipping, and tax. Wishlist items can be moved to the cart individually.
+
+![Cart page](images/cart_page.png)
+
+![Wishlist page](images/wishlist.png)
+
+### Checkout
+
+A three-step flow — shipping, payment (mocked), then review — with a step indicator, per-step validation,
+and a persistent order summary.
+
+![Checkout — shipping step](images/checkout.png)
+
+![Checkout — payment step](images/payment.png)
+
+![Checkout — review step](images/review_page.png)
+
+### Order confirmation and history
+
+After placing an order, a confirmation page shows the order number and estimated delivery. The Orders page
+lists past orders by email with status and total.
+
+![Order confirmation page](images/confirmation_order_page.png)
+
+![Order history](images/order_history.png)
+
 ## Stack
 
 - **Client:** Vite, React 19, TypeScript, React Router v7, Tailwind CSS v4
