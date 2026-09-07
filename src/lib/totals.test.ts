@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { calcOrderTotals } from '../../api/_order-totals.js'
 import type { CartItem } from '@/types'
 import {
   FREE_SHIPPING_THRESHOLD_CENTS,
@@ -150,4 +151,33 @@ describe('calcTotals', () => {
     const totals = calcTotals(items, 0, true)
     expect(totals.shippingCents).toBe(0)
   })
+})
+
+// api/_order-totals.ts re-implements this same math for the order-placement handler (see the
+// comment there on why it's duplicated rather than imported - /api is bundled separately from
+// the client). These cases pin both implementations to identical output for the same inputs,
+// so an edit to one that isn't mirrored in the other fails a test instead of silently letting
+// the confirmation page disagree with what the server actually charged.
+describe('parity with the server totals (api/_order-totals.ts)', () => {
+  const cases: { subtotalCents: number; discountCents: number; freeShipping: boolean }[] = [
+    { subtotalCents: 0, discountCents: 0, freeShipping: false },
+    { subtotalCents: 2000, discountCents: 0, freeShipping: false },
+    { subtotalCents: FREE_SHIPPING_THRESHOLD_CENTS, discountCents: 0, freeShipping: false },
+    { subtotalCents: 1000, discountCents: 5000, freeShipping: false }, // discount over subtotal
+    { subtotalCents: 1000, discountCents: -500, freeShipping: false }, // negative discount
+    { subtotalCents: 10000, discountCents: 1000, freeShipping: false },
+    { subtotalCents: 1000, discountCents: 0, freeShipping: true },
+    { subtotalCents: 1099, discountCents: 0, freeShipping: false }, // rounding case from calcTax above
+  ]
+
+  it.each(cases)(
+    'matches for subtotal=$subtotalCents discount=$discountCents freeShipping=$freeShipping',
+    ({ subtotalCents, discountCents, freeShipping }) => {
+      const items = [item({ priceCents: subtotalCents, quantity: 1 })]
+      const clientTotals = calcTotals(items, discountCents, freeShipping)
+      const serverTotals = calcOrderTotals(subtotalCents, discountCents, freeShipping)
+
+      expect(serverTotals).toEqual(clientTotals)
+    },
+  )
 })
